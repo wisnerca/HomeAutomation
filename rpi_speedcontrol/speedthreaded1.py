@@ -4,16 +4,30 @@ import Adafruit_DHT
 import time
 import RPi.GPIO as GPIO
 import threading
-GPIO.setmode(GPIO.BCM)
-LED = 15
-GPIO.setup(LED,GPIO.OUT)
-switchtemp = 77
-hyst = 1.5
-timewait = 10
-state = True
-state1 = True
+import signal
 
-def doStuff():
+speeds = [ 0.0 ] * 16
+pins   = [ 0 ] * 16
+stop = False
+
+
+def main():
+    GPIO.setmode(GPIO.BCM)
+    LED = 15
+    GPIO.setup(LED,GPIO.OUT)
+    switchtemp = 77
+    hyst = 1.5
+    timewait = 10
+    state = True
+    state1 = True
+
+
+def sigterm_handler(_signo, _stack_frame):
+    stop = True
+    # Raises SystemExit(0):
+    sys.exit(0)
+
+def (int num):
     laststate = False
     while True:
         if (state1):
@@ -27,7 +41,7 @@ def doStuff():
                 GPIO.output(LED, False)
                 laststate = False
 
-ratio = 0.35
+ratio = 0.75
 timestep = 0.1
 GPIO.output(LED, False)
 t = threading.Thread(target=doStuff)
