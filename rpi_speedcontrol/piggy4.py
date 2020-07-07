@@ -7,7 +7,7 @@ import sys
 
 
 ratio = 0.33
-timestep = 1.0/20.0
+timestep = 1.0/10.0
 GPIO.setmode(GPIO.BCM)
 LED = 15
 ledState = True
@@ -23,7 +23,7 @@ time.sleep(2)
 
 while True:
     val = False
-    myrand = random.gauss(0, 0.01)
+    myrand = 0.0 #random.gauss(0, 0.01)
     if (accum < ratio):
         val = True
         accum = accum * (1-ratio) + ratio + myrand 

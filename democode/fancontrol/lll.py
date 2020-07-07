@@ -6,13 +6,16 @@ import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 LED = 14
 GPIO.setup(LED,GPIO.OUT)
-switchtemp = 66
-hyst = 2
-timewait = 30
+switchtemp = 77
+hyst = 1.5
+timewait = 10
 state = True
 
+
+GPIO.output(14, False)
+
 while True:
-    humidity, temperature = Adafruit_DHT.read_retry(2302, 3)
+    humidity, temperature = Adafruit_DHT.read_retry(11, 4)
     fahrenheit = (temperature * 1.8) + 32
     print 'Temp: {0:0.1f} F  Humidity: {1:0.1f} %'.format(fahrenheit, humidity)
     oldstate = state

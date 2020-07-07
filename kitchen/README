@@ -1,0 +1,3 @@
+gpio14 is top outlet
+gpio15 is bottom outlet
+gpio27 is 24V fan (inverted)

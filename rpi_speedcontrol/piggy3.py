@@ -6,7 +6,7 @@ import threading
 import random
 import signal
 
-ratio = 0.59
+ratio = 0.79
 timestep = 1.0/20.0
 GPIO.setmode(GPIO.BCM)
 LED = 15
@@ -43,12 +43,15 @@ def workerThread():
 
 t = threading.Thread(target=workerThread)
 t.start()
+global ratio
 while (exiti == False):
-    x = str(raw_input("?"))
+    x = str(raw_input("?")).strip()
     if (x == "+"):
         ratioNew = ratio + 0.05
     elif (x == "-"):
         ratioNew = ratio - 0.05
+    elif (x == "c"):
+        exiti = True;
     if (ratioNew >=0 and ratio <=1):
         ratio = ratioNew
     print ratio
