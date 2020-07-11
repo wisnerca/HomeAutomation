@@ -1,0 +1,9 @@
+[Unit]
+Description=bottom outlet lights
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /home/christian/Code/HomeAutomation/kitchen/15_bottomoutlet_lights.py
+
+[Install]
+WantedBy=multi-user.target

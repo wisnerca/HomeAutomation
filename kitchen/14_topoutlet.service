@@ -1,0 +1,9 @@
+[Unit]
+Description=top outlet pump gpio 14
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python /home/christian/Code/HomeAutomation/kitchen/14_topoutlet_pump.py
+
+[Install]
+WantedBy=multi-user.target

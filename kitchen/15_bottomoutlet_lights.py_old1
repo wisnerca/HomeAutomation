@@ -15,5 +15,5 @@ def in_between(now, start, end):
 
 #https://stackoverflow.com/questions/20518122/python-working-out-if-time-now-is-between-two-times
 while True:
-    GPIO.output(LED, in_between(datetime.datetime.now().time(), datetime.time(22), datetime.time(10)) or in_between(datetime.datetime.now().time(), datetime.time(15, 30), datetime.time(16, 30)) )
+    GPIO.output(LED, in_between(datetime.datetime.now().time(), datetime.time(21), datetime.time(13)));
     time.sleep(10)

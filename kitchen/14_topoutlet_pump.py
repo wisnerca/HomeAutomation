@@ -15,7 +15,7 @@ def in_between(now, start, end):
 
 #https://stackoverflow.com/questions/20518122/python-working-out-if-time-now-is-between-two-times
 while True:
-    xxx = in_between(datetime.datetime.now().time(), datetime.time(20, 30), datetime.time(21, 30)) or in_between(datetime.datetime.now().time(), datetime.time(4), datetime.time(4, 30))
+    xxx = in_between(datetime.datetime.now().time(), datetime.time(22, 30), datetime.time(9, 30)) or in_between(datetime.datetime.now().time(), datetime.time(1), datetime.time(1, 30))
 #    print xxx
     GPIO.output(LED, xxx)
     time.sleep(10)
