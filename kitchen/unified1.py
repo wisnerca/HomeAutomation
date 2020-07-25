@@ -6,7 +6,7 @@ import threading
 #https://realpython.com/intro-to-python-threading/
 #https://stackoverflow.com/questions/20518122/python-working-out-if-time-now-is-between-two-times
 
-GPIO_PINS = [14]
+GPIO_PINS = [15]
 GPIO_TIMES = [ [[datetime.time(22), datetime.time(10)], [datetime.time(15, 30), datetime.time(16, 30)]] ]
 
 FAN_PIN = 27
@@ -41,6 +41,7 @@ def thread_times():
         for i in range(len(GPIO_PINS)):
             newval = in_time_ranges(GPIO_TIMES[i])
             GPIO.output(GPIO_PINS[i], newval)
+            print newval
         for i in range(len(FAN_RATIOS)):
             j = len(FAN_RATIOS)-i-1
             if (in_time_ranges(FAN_TIMES[j])):
