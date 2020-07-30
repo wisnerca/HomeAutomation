@@ -1,13 +1,13 @@
 relay:
 1 = no tape, 2=yes tape (black)
-0 = red1	BCM2
-1 = orange1	BCM3
-2 = yellow1	BCM4
-3 = brown1	BCM14
-4 = red2	BCM15
-5 = orange2	BCM17
-6 = yellow2	BCM27
-7 = brown2	BCM22
+0 = red1	BCM2    OUTLET0
+1 = orange1	BCM3    OUTLET1
+2 = yellow1	BCM4    ACFAN0
+3 = brown1	BCM14   ACFAN1
+4 = red2	BCM15   ACFAN2
+5 = orange2	BCM17   OUTLET2
+6 = yellow2	BCM27   OUTLET3
+7 = brown2	BCM22   OUTLET240
 ground = black1, brown2 (thick)
 vcc = red1 (thick)
 

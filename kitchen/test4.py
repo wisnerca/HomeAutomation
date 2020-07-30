@@ -5,43 +5,40 @@ import threading
 import signal
 
 
-OUTLET0 = 2
-OUTLET1 = 3
-ACFAN0 = 4
-ACFAN1 = 14
-ACFAN2 = 15
-OUTLET2 = 17
-OUTLET3 = 27
-OUTLET240 = 22
-
-RELAYS = [OUTLET0, OUTLET1, ACFAN0, ACFAN1, ACFAN2, OUTLET2, OUTLET3, OUTLET240]
-INITIALSTATE = [GPIO.HIGH, GPIO.HIGH, GPIO.HIGH, GPIO.HIGH, GPIO.HIGH, GPIO.HIGH, GPIO.HIGH, GPIO.HIGH]
+R4 = 27
+R1 = 22
+R2 = 23
+R3 = 17
 
 
 def setup():
     GPIO.setmode(GPIO.BCM)    # Number GPIOs by its physical locationS
-    for pin in RELAYS:
-        GPIO.setup(pin,GPIO.OUT)
-    for i in range(0, len(RELAYS)):
-        GPIO.output(RELAYS[i], INITIALSTATE[i])
+    GPIO.setup(R4,GPIO.OUT)
+    GPIO.setup(R1, GPIO.OUT)
+    GPIO.setup(R2, GPIO.OUT)
+    GPIO.setup(R3, GPIO.OUT)
+    GPIO.output(R4, GPIO.LOW)
+    GPIO.output(R1, GPIO.LOW)
+    GPIO.output(R2, GPIO.LOW)
+    GPIO.output(R3, GPIO.LOW)
 
 def setfan(val):
     if (val == 0):
-        GPIO.output(ACFAN0, GPIO.HIGH)
-        GPIO.output(ACFAN1, GPIO.HIGH)
-        GPIO.output(ACFAN2, GPIO.HIGH)
+        GPIO.output(R1, GPIO.LOW)
+        GPIO.output(R2, GPIO.LOW)
+        GPIO.output(R3, GPIO.LOW)
     if (val == 1):
-        GPIO.output(ACFAN0, GPIO.LOW)
-        GPIO.output(ACFAN1, GPIO.HIGH)
-        GPIO.output(ACFAN2, GPIO.HIGH)
+        GPIO.output(R1, GPIO.HIGH)
+        GPIO.output(R2, GPIO.LOW)
+        GPIO.output(R3, GPIO.LOW)
     if (val == 2):
-        GPIO.output(ACFAN0, GPIO.HIGH)
-        GPIO.output(ACFAN1, GPIO.LOW)
-        GPIO.output(ACFAN2, GPIO.HIGH)
+        GPIO.output(R1, GPIO.LOW)
+        GPIO.output(R2, GPIO.HIGH)
+        GPIO.output(R3, GPIO.LOW)
     if (val == 3):
-        GPIO.output(ACFAN0, GPIO.HIGH)
-        GPIO.output(ACFAN1, GPIO.LOW)
-        GPIO.output(ACFAN2, GPIO.LOW)
+        GPIO.output(R1, GPIO.LOW)
+        GPIO.output(R2, GPIO.HIGH)
+        GPIO.output(R3, GPIO.HIGH)
 
 
 def in_between(now, start, end):
