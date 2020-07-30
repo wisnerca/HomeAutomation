@@ -29,9 +29,10 @@ fan_ratio = FAN_INIT_RATIO
 keeprunning = True
 
 #acfan uses 2,3,4
-#off = (false, false, false)
-#low = (true, false, false)
-
+#off = (false, false,  false)
+#low = (true,  false,  false)
+#med = (true,  false,  false)
+#high= (true,  false,  false)
 
 def exit_signal(signum, frame):
     global keeprunning
@@ -113,10 +114,11 @@ def thread_relays():
     global keeprunning
     hc595_in(0xff)
     hc595_out()
-    relayvals_old = 0xff
+    relayvals_old = 0x00
     while keeprunning:
         if (relayvals_old != relayvals):
             hc595_in(0xff^relayvals)
+            time.sleep(0.1)
             hc595_out()
             relayvals_old = relayvals
         time.sleep(0.1)
@@ -140,6 +142,11 @@ def thread_fan():
         else:
             time.sleep(FAN_TIMESTEP)
         
+def test1():
+    global relayvals
+    for i in range(0,127):
+        relayvals = i
+        time.sleep(3)
 
 
 
@@ -153,8 +160,8 @@ if __name__ == '__main__':
     fanthread = threading.Thread(target=thread_fan)
     relaysthread = threading.Thread(target=thread_relays)
 
-    timesthread.start()
-    fanthread.start()
+    #timesthread.start()
+    #fanthread.start()
     relaysthread.start()
 
     #while (keeprunning):
