@@ -166,3 +166,6 @@ if __name__ == '__main__':
 
     #while (keeprunning):
     #    time.sleep(0.1)
+
+
+#hc595_in(0x00); hc595_out()

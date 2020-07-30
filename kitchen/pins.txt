@@ -1,0 +1,14 @@
+relay:
+1 = no tape, 2=yes tape (black)
+0 = red1	BCM2
+1 = orange1	BCM3
+2 = yellow1	BCM4
+3 = brown1	BCM14
+4 = red2	BCM15
+5 = orange2	BCM17
+6 = yellow2	BCM27
+7 = brown2	BCM22
+ground = black1, brown2 (thick)
+vcc = red1 (thick)
+
+DCFAN		BCM18
