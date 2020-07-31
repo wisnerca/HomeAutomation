@@ -26,11 +26,11 @@ def setup():
         GPIO.output(RELAYS[i], INITIALSTATE[i])
 
 def setfan(val):
-    if (val == 0):
+    if (val == 3):
         GPIO.output(ACFAN0, GPIO.HIGH)
         GPIO.output(ACFAN1, GPIO.HIGH)
         GPIO.output(ACFAN2, GPIO.HIGH)
-    if (val == 1):
+    if (val == 0):
         GPIO.output(ACFAN0, GPIO.LOW)
         GPIO.output(ACFAN1, GPIO.HIGH)
         GPIO.output(ACFAN2, GPIO.HIGH)
@@ -38,7 +38,7 @@ def setfan(val):
         GPIO.output(ACFAN0, GPIO.HIGH)
         GPIO.output(ACFAN1, GPIO.LOW)
         GPIO.output(ACFAN2, GPIO.HIGH)
-    if (val == 3):
+    if (val == 1):
         GPIO.output(ACFAN0, GPIO.HIGH)
         GPIO.output(ACFAN1, GPIO.LOW)
         GPIO.output(ACFAN2, GPIO.LOW)

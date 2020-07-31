@@ -4,77 +4,72 @@ import datetime
 import threading
 import signal
 
+OUTLET0 = 2
+OUTLET1 = 3
+ACFAN0 = 4
+ACFAN1 = 14
+ACFAN2 = 15
+OUTLET2 = 17
+OUTLET3 = 27
+OUTLET240 = 22
+
+ALLGPIOS = [OUTLET0, OUTLET1, OUTLET2, OUTLET3, OUTLET240, ACFAN0, ACFAN1, ACFAN2]
 
 #https://realpython.com/intro-to-python-threading/
 #https://stackoverflow.com/questions/20518122/python-working-out-if-time-now-is-between-two-times
 
-GPIO_PINS = []
-GPIO_TIMES = [ [[datetime.time(22), datetime.time(10)], [datetime.time(15, 30), datetime.time(16, 30)]] ]
+GPIO_PINS = [OUTLET0, OUTLET1, OUTLET2, OUTLET3, OUTLET240]
+#GPIO_TIMES = [ [[datetime.time(20), datetime.time(13)], [datetime.time(15, 30), datetime.time(16, 30)]] ]
+#LIGHTTIMES1 = [[datetime.time(20), datetime.time(13)]]
+LIGHTTIMES1 = [[datetime.time(18), datetime.time(13)]]
+VENTTIMES1 = [[datetime.time(18), datetime.time(13)]]
+PUMPTIMES1 = [[datetime.time(18), datetime.time(9)]]
+GPIO_TIMES = [ LIGHTTIMES1, PUMPTIMES1, VENTTIMES1, LIGHTTIMES1, LIGHTTIMES1]
 
-#https://www.sunfounder.com/learn/Super_Kit_V2_for_RaspberryPi/lesson-10-driving-leds-by-74hc595-super-kit-for-raspberrypi.html
-SDI   = 23
-RCLK  = 14
-SRCLK = 15
+
+
 
 FAN_PIN = 18
 FAN_TIMESTEP = 0.02
 FAN_INIT_RATIO = 0.5
 FAN_TIMES = [ [[datetime.time(22), datetime.time(10)], [datetime.time(15, 30), datetime.time(16, 30)]], [[datetime.time(00, 00, 00), datetime.time(23, 59, 59)]] ]
-FAN_RATIOS = [1.0, 0.3]
+#FAN_TIMES = [GPIO_TIMES[0]]
+FAN_RATIOS = [1.0, 0.5]
 
-relayvals = 0x00
+
+ACFANTIMES3 = []
+ACFANTIMES2 = LIGHTTIMES1
+ACFANTIMES1 = [[datetime.time(0, 0, 0), datetime.time(23, 59, 59, 999999)]]
+ACFAN_TIMES = [ACFANTIMES3, ACFANTIMES2, ACFANTIMES1]
 
 fan_ratio = FAN_INIT_RATIO
+acfanval = 0
 
 keeprunning = True
-
-#acfan uses 2,3,4
-#off = (false, false,  false)
-#low = (true,  false,  false)
-#med = (true,  false,  false)
-#high= (true,  false,  false)
 
 def exit_signal(signum, frame):
     global keeprunning
     keeprunning = False
 
-def hc595_in(dat):
-    for bit in range(0, 8):    
-        GPIO.output(SDI, 0x80 & (dat << bit))
-        time.sleep(0.001)
-        GPIO.output(SRCLK, GPIO.HIGH)
-        time.sleep(0.001)
-        GPIO.output(SRCLK, GPIO.LOW)
-        time.sleep(0.001)
+def setacfan(val):
+    if (val == 3):
+        GPIO.output(ACFAN0, GPIO.HIGH)
+        GPIO.output(ACFAN1, GPIO.HIGH)
+        GPIO.output(ACFAN2, GPIO.HIGH)
+    if (val == 0):
+        GPIO.output(ACFAN0, GPIO.LOW)
+        GPIO.output(ACFAN1, GPIO.HIGH)
+        GPIO.output(ACFAN2, GPIO.HIGH)
+    if (val == 2):
+        GPIO.output(ACFAN0, GPIO.HIGH)
+        GPIO.output(ACFAN1, GPIO.LOW)
+        GPIO.output(ACFAN2, GPIO.HIGH)
+    if (val == 1):
+        GPIO.output(ACFAN0, GPIO.HIGH)
+        GPIO.output(ACFAN1, GPIO.LOW)
+        GPIO.output(ACFAN2, GPIO.LOW)
 
-def hc595_out():
-    time.sleep(0.001)
-    GPIO.output(RCLK, GPIO.HIGH)
-    time.sleep(0.001)
-    GPIO.output(RCLK, GPIO.LOW)
-    time.sleep(0.001)
 
-def setup():
-    global relayvals
-    GPIO.setmode(GPIO.BCM)    # Number GPIOs by its physical location
-    for pin in GPIO_PINS:
-        GPIO.setup(pin,GPIO.OUT)
-    GPIO.setup(FAN_PIN,GPIO.OUT)
-    GPIO.setup(SDI, GPIO.OUT)
-    GPIO.setup(RCLK, GPIO.OUT)
-    GPIO.setup(SRCLK, GPIO.OUT)
-    GPIO.output(SDI, GPIO.LOW)
-    GPIO.output(RCLK, GPIO.LOW)
-    GPIO.output(SRCLK, GPIO.LOW)
-    hc595_in(0xff^relayvals)
-    hc595_out()
-
-def set_relay(num, val):
-    global relayvals
-    if (val):
-        relayvals = relayvals | 1 << (7-num)
-    else:
-        relayvals = relayvals &  ((1 << (7-num))^0xff)
 
 def in_between(now, start, end):
     if start <= end:
@@ -99,31 +94,25 @@ def thread_times():
     global keeprunning
     while keeprunning:
         for i in range(len(GPIO_PINS)):
-            newval = in_time_ranges(GPIO_TIMES[i])
-            #GPIO.output(GPIO_PINS[i], newval)
-            set_relay(GPIO_PINS[i], newval)
+            newval = GPIO.LOW  if in_time_ranges(GPIO_TIMES[i]) else GPIO.HIGH
+            GPIO.output(GPIO_PINS[i], newval)
             #print newval
         for i in range(len(FAN_RATIOS)):
             j = len(FAN_RATIOS)-i-1
             if (in_time_ranges(FAN_TIMES[j])):
                 fan_ratio = FAN_RATIOS[j]
+            
+        if (in_time_ranges(ACFAN_TIMES[0])):
+            setacfan(3)
+        elif (in_time_ranges(ACFAN_TIMES[1])):
+            setacfan(2)
+        elif (in_time_ranges(ACFAN_TIMES[1])):
+            setacfan(1)
+        else: 
+            setacfan(0)
         time.sleep(10)
-
-def thread_relays():
-    global relayvals
-    global keeprunning
-    hc595_in(0xff)
-    hc595_out()
-    relayvals_old = 0x00
-    while keeprunning:
-        if (relayvals_old != relayvals):
-            hc595_in(0xff^relayvals)
-            time.sleep(0.1)
-            hc595_out()
-            relayvals_old = relayvals
-        time.sleep(0.1)
-    hc595_in(0xff)
-    hc595_out()
+    for pin in ALLGPIOS:
+        GPIO.output(pin, True)
 
 
 def thread_fan():
@@ -141,31 +130,34 @@ def thread_fan():
             time.sleep((1.0-fan_ratio) * FAN_TIMESTEP)
         else:
             time.sleep(FAN_TIMESTEP)
+    GPIO.output(FAN_PIN, True)
         
-def test1():
-    global relayvals
-    for i in range(0,127):
-        relayvals = i
-        time.sleep(3)
-
-
 
 if __name__ == '__main__':
+    global keeprunning
+    #https://gist.github.com/ruedesign/5218221
     signal.signal(signal.SIGINT, exit_signal)
     signal.signal(signal.SIGTERM, exit_signal)
-    
-    setup()
+
+    GPIO.setmode(GPIO.BCM)
+    for pin in ALLGPIOS:
+        GPIO.setup(pin,GPIO.OUT)
+        GPIO.output(pin, True)
+
+    GPIO.setup(FAN_PIN,GPIO.OUT)
 
     timesthread = threading.Thread(target=thread_times)
     fanthread = threading.Thread(target=thread_fan)
-    relaysthread = threading.Thread(target=thread_relays)
 
-    #timesthread.start()
-    #fanthread.start()
-    relaysthread.start()
+    timesthread.start()
+    fanthread.start()
 
-    #while (keeprunning):
-    #    time.sleep(0.1)
-
-
-#hc595_in(0x00); hc595_out()
+    while timesthread.isAlive and fanthread.isAlive:
+        try:
+            pass
+            # synchronization timeout of threads kill
+            #[t.join(1) for t in threads
+            # if t is not None and t.isAlive()]
+        except KeyboardInterrupt:
+            # Ctrl-C handling and send kill to threads
+            keeprunning = False
