@@ -29,20 +29,20 @@ GPIO_TIMES = [ LIGHTTIMES1, PUMPTIMES1, VENTTIMES1, LIGHTTIMES1, LIGHTTIMES1]
 
 
 
-FAN_PIN = 18
-FAN_TIMESTEP = 0.02
-FAN_INIT_RATIO = 0.5
-FAN_TIMES = [ [[datetime.time(22), datetime.time(10)], [datetime.time(15, 30), datetime.time(16, 30)]], [[datetime.time(00, 00, 00), datetime.time(23, 59, 59)]] ]
+DCFAN_PIN = 18
+DCFAN_TIMESTEP = 0.02
+DCFAN_INIT_RATIO = 0.5
+DCFAN_TIMES = [ [[datetime.time(21), datetime.time(12)]] ]
 #FAN_TIMES = [GPIO_TIMES[0]]
-FAN_RATIOS = [1.0, 0.5]
+DCFAN_RATIOS = [1.0, 0.5]
 
 
-ACFANTIMES3 = []
-ACFANTIMES2 = LIGHTTIMES1
+ACFANTIMES3 = [[datetime.time(23), datetime.time(11)]]
+ACFANTIMES2 = []
 ACFANTIMES1 = [[datetime.time(0, 0, 0), datetime.time(23, 59, 59, 999999)]]
 ACFAN_TIMES = [ACFANTIMES3, ACFANTIMES2, ACFANTIMES1]
 
-fan_ratio = FAN_INIT_RATIO
+dcfan_ratio = DCFAN_INIT_RATIO
 acfanval = 0
 
 keeprunning = True
@@ -90,17 +90,24 @@ def in_time_ranges(times):
     return ison
 
 def thread_times():
-    global fan_ratio
+    global dcfan_ratio
     global keeprunning
     while keeprunning:
         for i in range(len(GPIO_PINS)):
             newval = GPIO.LOW  if in_time_ranges(GPIO_TIMES[i]) else GPIO.HIGH
             GPIO.output(GPIO_PINS[i], newval)
             #print newval
-        for i in range(len(FAN_RATIOS)):
-            j = len(FAN_RATIOS)-i-1
-            if (in_time_ranges(FAN_TIMES[j])):
-                fan_ratio = FAN_RATIOS[j]
+        
+        #do DC fan stuff
+        xdcfan_ratio = dcfan_ratio
+        for i in range(len(DCFAN_RATIOS)):
+            j = len(DCFAN_RATIOS)-i-1
+            if (j >= len(DCFAN_TIMES)):
+                xdcfan_ratio = DCFAN_RATIOS[j]
+            else:
+                if (in_time_ranges(DCFAN_TIMES[j])):
+                    xdcfan_ratio = DCFAN_RATIOS[j]
+        dcfan_ratio = xdcfan_ratio
             
         if (in_time_ranges(ACFAN_TIMES[0])):
             setacfan(3)
@@ -115,22 +122,22 @@ def thread_times():
         GPIO.output(pin, True)
 
 
-def thread_fan():
-    global fan_ratio
+def dcthread_fan():
+    global dcfan_ratio
     global keeprunning
     while keeprunning:
-        if (fan_ratio > 0):
-            GPIO.output(FAN_PIN, False)
-            time.sleep(fan_ratio * FAN_TIMESTEP)
+        if (dcfan_ratio > 0):
+            GPIO.output(DCFAN_PIN, False)
+            time.sleep(dcfan_ratio * DCFAN_TIMESTEP)
         else:
-            time.sleep(FAN_TIMESTEP)
+            time.sleep(DCFAN_TIMESTEP)
         
-        if (fan_ratio < 1):
-            GPIO.output(FAN_PIN, True)
-            time.sleep((1.0-fan_ratio) * FAN_TIMESTEP)
+        if (dcfan_ratio < 1):
+            GPIO.output(DCFAN_PIN, True)
+            time.sleep((1.0-dcfan_ratio) * DCFAN_TIMESTEP)
         else:
-            time.sleep(FAN_TIMESTEP)
-    GPIO.output(FAN_PIN, True)
+            time.sleep(DCFAN_TIMESTEP)
+    GPIO.output(DCFAN_PIN, True)
         
 
 if __name__ == '__main__':
@@ -144,15 +151,15 @@ if __name__ == '__main__':
         GPIO.setup(pin,GPIO.OUT)
         GPIO.output(pin, True)
 
-    GPIO.setup(FAN_PIN,GPIO.OUT)
+    GPIO.setup(DCFAN_PIN,GPIO.OUT)
 
     timesthread = threading.Thread(target=thread_times)
-    fanthread = threading.Thread(target=thread_fan)
+    dcfanthread = threading.Thread(target=dcthread_fan)
 
     timesthread.start()
-    fanthread.start()
+    dcfanthread.start()
 
-    while timesthread.isAlive and fanthread.isAlive:
+    while timesthread.isAlive and dcfanthread.isAlive and keeprunning:
         try:
             time.sleep(1)
             # synchronization timeout of threads kill
@@ -161,3 +168,4 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             # Ctrl-C handling and send kill to threads
             keeprunning = False
+
