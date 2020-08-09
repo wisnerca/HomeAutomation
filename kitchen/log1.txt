@@ -1,0 +1,23 @@
+christian@czerow:~/Code/HomeAutomation/kitchen $ sudo python -i test3.py
+test3.py:24: RuntimeWarning: This channel is already in use, continuing anyway.  Use GPIO.setwarnings(False) to disable warnings.
+  GPIO.setup(pin,GPIO.OUT)
+>>> setfan(0)
+>>> setfan(1)
+>>> setfan(2)
+>>> setfan(3)
+>>> setfan(1)
+>>> print in_time_ranges(GPIO_TIMES[0])
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'GPIO_TIMES' is not defined
+>>> GPIO.output(OUTLET, GPIO.LOW)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+NameError: name 'OUTLET' is not defined
+>>> GPIO.output(OUTLET0, GPIO.LOW)
+>>> GPIO.output(OUTLET1, GPIO.LOW)
+>>> GPIO.output(OUTLET2, GPIO.LOW)
+>>> GPIO.output(OUTLET3, GPIO.LOW)
+>>> GPIO.output(OUTLET240, GPIO.LOW)
+>>> ex
+

@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     while timesthread.isAlive and fanthread.isAlive:
         try:
-            pass
+            time.sleep(1)
             # synchronization timeout of threads kill
             #[t.join(1) for t in threads
             # if t is not None and t.isAlive()]
