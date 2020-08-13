@@ -4,14 +4,19 @@ import datetime
 import threading
 import signal
 
-OUTLET0 = 2
-OUTLET1 = 3
-ACFAN0 = 4
-ACFAN1 = 14
-ACFAN2 = 15
-OUTLET2 = 17
-OUTLET3 = 27
-OUTLET240 = 22
+global keeprunning
+keeprunning = True
+
+OUTLET0 = 2     #Lights
+OUTLET1 = 3     #Air pump
+ACFAN0 = 4      
+ACFAN1 = 14     
+ACFAN2 = 15     
+OUTLET2 = 17    #Vent fan
+OUTLET3 = 27    #Water pump
+OUTLET240 = 20  #Lights
+
+DCFAN1 = 21     #DC fan PWM
 
 ALLGPIOS = [OUTLET0, OUTLET1, OUTLET2, OUTLET3, OUTLET240, ACFAN0, ACFAN1, ACFAN2]
 
@@ -20,29 +25,33 @@ ALLGPIOS = [OUTLET0, OUTLET1, OUTLET2, OUTLET3, OUTLET240, ACFAN0, ACFAN1, ACFAN
 
 GPIO_PINS = [OUTLET0, OUTLET1, OUTLET2, OUTLET3, OUTLET240]
 #GPIO_TIMES = [ [[datetime.time(20), datetime.time(13)], [datetime.time(15, 30), datetime.time(16, 30)]] ]
-#LIGHTTIMES1 = [[datetime.time(20), datetime.time(13)]]
-LIGHTTIMES1 = [[datetime.time(18), datetime.time(13)]]
-VENTTIMES1 = [[datetime.time(18), datetime.time(13)]]
-PUMPTIMES1 = [[datetime.time(18), datetime.time(9)]]
-GPIO_TIMES = [ LIGHTTIMES1, PUMPTIMES1, VENTTIMES1, LIGHTTIMES1, LIGHTTIMES1]
+#LIGHTTIMES1 =  [[datetime.time(20), datetime.time(13)]]
+LIGHTTIMES1 =   [[datetime.time(19), datetime.time(12)]]
+VENTTIMES1 =    [[datetime.time(19), datetime.time(13)]]
+PUMPTIMES1 =    [[datetime.time(18), datetime.time(9)]]
+EBBFLOWTIMES1 = [[datetime.time(21), datetime.time(21,20)], [datetime.time(1,45), datetime.time(2,5)], [datetime.time(7), datetime.time(7,20)], [datetime.time(14), datetime.time(14,20)]]   
+
+GPIO_TIMES = [ LIGHTTIMES1, PUMPTIMES1, VENTTIMES1, EBBFLOWTIMES1, LIGHTTIMES1]
 
 
 
 
-DCFAN_PIN = 18
+DCFAN_PINS = [18, 21]
 DCFAN_TIMESTEP = 0.02
 DCFAN_INIT_RATIO = 0.5
-DCFAN_TIMES = [ [[datetime.time(21), datetime.time(12)]] ]
+#DCFAN_TIMES = [ [[[datetime.time(21), datetime.time(12)]]], [[[datetime.time(0, 0, 0), datetime.time(23, 59, 59, 999999)]]]]
+DCFAN_TIMES = [ [[[datetime.time(21), datetime.time(12)]]], [LIGHTTIMES1]]
 #FAN_TIMES = [GPIO_TIMES[0]]
-DCFAN_RATIOS = [1.0, 0.5]
+DCFAN_RATIOS = [[0.5, 0.3], [0.3, 0]]
 
 
-ACFANTIMES3 = [[datetime.time(23), datetime.time(11)]]
-ACFANTIMES2 = []
+#ACFANTIMES1 = [[datetime.time(23), datetime.time(11)]]
+ACFANTIMES3 = [[datetime.time(3), datetime.time(11)]]
 ACFANTIMES1 = [[datetime.time(0, 0, 0), datetime.time(23, 59, 59, 999999)]]
+ACFANTIMES2 = LIGHTTIMES1
 ACFAN_TIMES = [ACFANTIMES3, ACFANTIMES2, ACFANTIMES1]
 
-dcfan_ratio = DCFAN_INIT_RATIO
+dcfan_ratios = [DCFAN_INIT_RATIO, DCFAN_INIT_RATIO]
 acfanval = 0
 
 keeprunning = True
@@ -52,6 +61,7 @@ def exit_signal(signum, frame):
     keeprunning = False
 
 def setacfan(val):
+    #print val
     if (val == 3):
         GPIO.output(ACFAN0, GPIO.HIGH)
         GPIO.output(ACFAN1, GPIO.HIGH)
@@ -99,21 +109,22 @@ def thread_times():
             #print newval
         
         #do DC fan stuff
-        xdcfan_ratio = dcfan_ratio
-        for i in range(len(DCFAN_RATIOS)):
-            j = len(DCFAN_RATIOS)-i-1
-            if (j >= len(DCFAN_TIMES)):
-                xdcfan_ratio = DCFAN_RATIOS[j]
-            else:
-                if (in_time_ranges(DCFAN_TIMES[j])):
-                    xdcfan_ratio = DCFAN_RATIOS[j]
-        dcfan_ratio = xdcfan_ratio
+        for k in range(len(DCFAN_PINS)):
+            xdcfan_ratio = dcfan_ratios[k]
+            for i in range(len(DCFAN_RATIOS[k])):
+                j = len(DCFAN_RATIOS[k])-i-1
+                if (j >= len(DCFAN_TIMES[k])):
+                    xdcfan_ratio = (DCFAN_RATIOS[k])[j]
+                else:
+                    if (in_time_ranges(DCFAN_TIMES[k][j])):
+                        xdcfan_ratio = DCFAN_RATIOS[k][j]
+            dcfan_ratios[k] = xdcfan_ratio
             
         if (in_time_ranges(ACFAN_TIMES[0])):
             setacfan(3)
         elif (in_time_ranges(ACFAN_TIMES[1])):
             setacfan(2)
-        elif (in_time_ranges(ACFAN_TIMES[1])):
+        elif (in_time_ranges(ACFAN_TIMES[2])):
             setacfan(1)
         else: 
             setacfan(0)
@@ -122,26 +133,25 @@ def thread_times():
         GPIO.output(pin, True)
 
 
-def dcthread_fan():
-    global dcfan_ratio
+def dcthread_fan(fannum):
+    global dcfan_ratios
     global keeprunning
     while keeprunning:
-        if (dcfan_ratio > 0):
-            GPIO.output(DCFAN_PIN, False)
-            time.sleep(dcfan_ratio * DCFAN_TIMESTEP)
+        if (dcfan_ratios[fannum] > 0):
+            GPIO.output(DCFAN_PINS[fannum], False)
+            time.sleep(dcfan_ratios[fannum] * DCFAN_TIMESTEP)
         else:
             time.sleep(DCFAN_TIMESTEP)
         
-        if (dcfan_ratio < 1):
-            GPIO.output(DCFAN_PIN, True)
-            time.sleep((1.0-dcfan_ratio) * DCFAN_TIMESTEP)
+        if (dcfan_ratios[fannum] < 1):
+            GPIO.output(DCFAN_PINS[fannum], True)
+            time.sleep((1.0-dcfan_ratios[fannum]) * DCFAN_TIMESTEP)
         else:
             time.sleep(DCFAN_TIMESTEP)
-    GPIO.output(DCFAN_PIN, True)
+    GPIO.output(DCFAN_PINS[fannum], True)
         
 
 if __name__ == '__main__':
-    global keeprunning
     #https://gist.github.com/ruedesign/5218221
     signal.signal(signal.SIGINT, exit_signal)
     signal.signal(signal.SIGTERM, exit_signal)
@@ -151,15 +161,21 @@ if __name__ == '__main__':
         GPIO.setup(pin,GPIO.OUT)
         GPIO.output(pin, True)
 
-    GPIO.setup(DCFAN_PIN,GPIO.OUT)
+    for pin in DCFAN_PINS:
+        GPIO.setup(pin,GPIO.OUT)
 
     timesthread = threading.Thread(target=thread_times)
-    dcfanthread = threading.Thread(target=dcthread_fan)
+    dcfanthreads = []
+
+    for i in range(len(DCFAN_PINS)):
+            dcfanthreads.append(threading.Thread(target=dcthread_fan, args=[i]))
+            dcfanthreads[i].start()
+#    dcfanthread = threading.Thread(target=dcthread_fan)
 
     timesthread.start()
-    dcfanthread.start()
+#    dcfanthread.start()
 
-    while timesthread.isAlive and dcfanthread.isAlive and keeprunning:
+    while keeprunning:
         try:
             time.sleep(1)
             # synchronization timeout of threads kill

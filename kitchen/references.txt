@@ -1,0 +1,7 @@
+https://pinout.xyz/#
+
+https://docs.python.org/3/library/threading.html
+
+https://www.ipdpower.com/wp-content/uploads/2011/06/CE-225%20Specs.pdf
+
+https://www.electroschematics.com/4-wire-pc-fan/
